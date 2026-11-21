@@ -40,7 +40,7 @@
   <p>The site is static. Every game on the page comes from one file, <code>games.json</code>. To add, change or remove a game you edit that file and publish it again. There are two ways to do it: a script that fills in the cover, trailer and screenshots for you, or editing the file by hand.</p>
 
   <h2>Option 1: the script (recommended)</h2>
-  <p>The script <code>tools/add_game.py</code> looks the game up on <a href="https://rawg.io/apidocs" target="_blank" rel="noopener">RAWG</a> and adds it to <code>games.json</code> with its cover, trailer (when RAWG has one) and screenshots. It needs Python 3 and nothing else.</p>
+  <p>The script <code>tools/add_game.py</code> adds, updates and removes games. When it adds one it looks the game up on <a href="https://rawg.io/apidocs" target="_blank" rel="noopener">RAWG</a> and adds it to <code>games.json</code> with its cover, trailer (when RAWG has one) and screenshots. It needs Python 3 and nothing else.</p>
 
   <h3 style="font:700 20px var(--display);color:#fff;margin:14px 0 4px">One-time setup</h3>
   <ol>
@@ -57,9 +57,18 @@
 <pre><code>python3 tools/add_game.py "Sekiro: Shadows Die Twice" --platform PS4 --genre "Souls Like" --status "In progress"</code></pre>
 
   <h3 style="font:700 20px var(--display);color:#fff;margin:14px 0 4px">If the script picks the wrong game</h3>
-  <p>List the matches, then run the command again with the id you want:</p>
+  <p>List the matches, then fix the game with the id you want:</p>
 <pre><code>python3 tools/add_game.py "Resident Evil" --search
-python3 tools/add_game.py "Resident Evil" --rawg-id 56183 --platform PS4 --genre "Survival horror" --finished 2026-02-18 --replace</code></pre>
+python3 tools/add_game.py "Resident Evil" --update --refresh --rawg-id 56183</code></pre>
+
+  <h3 style="font:700 20px var(--display);color:#fff;margin:14px 0 4px">Update a game</h3>
+  <p>Add <code>--update</code> and give only what changes. The title must match a game already in the list (capital letters do not matter).</p>
+<pre><code>python3 tools/add_game.py "Sekiro: Shadows Die Twice" --update --status Done --finished 2026-11-02
+python3 tools/add_game.py "Hades" --update --platform PC --notes "Played twice"</code></pre>
+  <p>Use <code>--status Done</code> to move a game from "In progress" to finished (give <code>--finished</code> if it has no date). Use <code>--refresh</code> to fetch the cover, trailer and screenshots again.</p>
+
+  <h3 style="font:700 20px var(--display);color:#fff;margin:14px 0 4px">Remove a game</h3>
+<pre><code>python3 tools/add_game.py "Hades" --remove</code></pre>
 
   <h3 style="font:700 20px var(--display);color:#fff;margin:14px 0 4px">All options</h3>
   <table>
@@ -67,27 +76,36 @@ python3 tools/add_game.py "Resident Evil" --rawg-id 56183 --platform PS4 --genre
     <tr><td><code>--platform</code></td><td>Platform you played on, for example <code>PS5</code>, <code>SNES</code>, <code>PC</code>.</td></tr>
     <tr><td><code>--genre</code></td><td>Genre text shown on the page.</td></tr>
     <tr><td><code>--finished</code></td><td>Date finished as <code>YYYY-MM-DD</code>.</td></tr>
-    <tr><td><code>--status</code></td><td>Use <code>"In progress"</code> for unfinished games. Leave it out for finished ones.</td></tr>
+    <tr><td><code>--status</code></td><td>Use <code>"In progress"</code> for unfinished games, or <code>Done</code> to mark a game as finished. Leave it out when adding a finished game.</td></tr>
     <tr><td><code>--notes</code></td><td>Optional short note shown under the game.</td></tr>
     <tr><td><code>--rawg-id</code></td><td>Exact RAWG game id, to skip the search.</td></tr>
     <tr><td><code>--search</code></td><td>Only list the RAWG matches and stop.</td></tr>
-    <tr><td><code>--replace</code></td><td>Overwrite the game if it is already in <code>games.json</code>.</td></tr>
+    <tr><td><code>--update</code></td><td>Change the given fields of a game that is already in the list.</td></tr>
+    <tr><td><code>--remove</code></td><td>Remove the game from the list.</td></tr>
+    <tr><td><code>--refresh</code></td><td>With <code>--update</code>: fetch the cover, trailer and screenshots again.</td></tr>
   </table>
 
-  <h2>Option 2: add a game from GitHub (no computer needed)</h2>
-  <p>The repository has a workflow that runs the same script for you. You fill in a form on GitHub and the site updates by itself a minute later.</p>
+  <h2>Option 2: manage games from GitHub (no computer needed)</h2>
+  <p>The repository has a workflow that runs the same script for you. You fill in a form on GitHub and the site updates by itself a minute later. It can add, update and remove games.</p>
   <h3 style="font:700 20px var(--display);color:#fff;margin:14px 0 4px">One-time setup</h3>
   <ol>
     <li>In the repository open <strong>Settings &rarr; Secrets and variables &rarr; Actions</strong>, press <strong>New repository secret</strong>, name it <code>RAWG_API_KEY</code> and paste your RAWG key.</li>
     <li>Open <strong>Settings &rarr; Pages</strong> and set <strong>Source</strong> to <strong>GitHub Actions</strong>.</li>
   </ol>
-  <h3 style="font:700 20px var(--display);color:#fff;margin:14px 0 4px">Add a game</h3>
+  <h3 style="font:700 20px var(--display);color:#fff;margin:14px 0 4px">Use it</h3>
   <ol>
-    <li>Open the <strong>Actions</strong> tab, choose <strong>Add game and deploy</strong> on the left, then press <strong>Run workflow</strong>.</li>
-    <li>Fill in the form. Only the title is always required. Give a finished date, or type <code>In progress</code> in the status field.</li>
-    <li>Press the green <strong>Run workflow</strong> button. The workflow adds the game to <code>games.json</code>, saves it to the repository and publishes the site.</li>
+    <li>Open the <strong>Actions</strong> tab, choose <strong>Manage games and deploy</strong> on the left, then press <strong>Run workflow</strong>.</li>
+    <li>Pick an <strong>action</strong> and fill in the title. Fill in only the other fields that action needs.</li>
+    <li>Press the green <strong>Run workflow</strong> button. The workflow saves the change to <code>games.json</code> and publishes the site.</li>
   </ol>
-  <p>If the wrong game is picked, tick <strong>search_only</strong> and run it to see the RAWG matches in the run summary. Then run it again with the right id in <strong>rawg_id</strong> and tick <strong>replace</strong>.</p>
+  <table>
+    <tr><th>Action</th><th>What it does</th></tr>
+    <tr><td><code>add</code></td><td>Adds a new game. Give a finished date, or type <code>In progress</code> in the status field.</td></tr>
+    <tr><td><code>update</code></td><td>Changes the fields you fill in for a game already in the list. Type <code>Done</code> in the status field to mark a game as finished. Tick <code>refresh_media</code> to fetch the cover, trailer and screenshots again.</td></tr>
+    <tr><td><code>remove</code></td><td>Removes the game. Only the title is needed.</td></tr>
+    <tr><td><code>search</code></td><td>Lists the RAWG matches in the run summary and changes nothing.</td></tr>
+  </table>
+  <p>If the wrong game is picked, run <code>search</code> to see the matches, then run <code>update</code> with the right id in <strong>rawg_id</strong> and <strong>refresh_media</strong> ticked.</p>
   <p class="note">The key is stored as a GitHub secret. It is never written to the site or the repository.</p>
 
   <h2>Option 3: edit games.json by hand</h2>
@@ -133,7 +151,7 @@ python3 tools/add_game.py "Resident Evil" --rawg-id 56183 --platform PS4 --genre
   <ol>
     <li>Create a repository on GitHub and push this folder to it. Check that <code>.env</code> is not included.</li>
     <li>In the repository, open <strong>Settings &rarr; Pages</strong> and set <strong>Source</strong> to <strong>GitHub Actions</strong>.</li>
-    <li>Run the <strong>Add game and deploy</strong> workflow from the Actions tab, or push any change to <code>main</code>. Every push to <code>main</code> publishes the site.</li>
+    <li>Run the <strong>Manage games and deploy</strong> workflow from the Actions tab, or push any change to <code>main</code>. Every push to <code>main</code> publishes the site.</li>
     <li>After a minute the site is live at <code>https://YOUR-USER.github.io/YOUR-REPO/</code>.</li>
   </ol>
   <p>To update the site later, add games, then commit and push:</p>

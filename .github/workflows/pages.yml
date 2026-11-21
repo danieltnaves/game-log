@@ -1,4 +1,4 @@
-name: Add game and deploy
+name: Manage games and deploy
 
 on:
   # Every push to main publishes the site.
@@ -7,41 +7,46 @@ on:
   # Run manually from the Actions tab to add a game (fill in the form).
   workflow_dispatch:
     inputs:
+      action:
+        description: What to do
+        required: true
+        type: choice
+        default: add
+        options:
+          - add
+          - update
+          - remove
+          - search
       title:
-        description: Game title, e.g. Hades
+        description: Game title. For update and remove it must match a game already in the list.
         required: true
         type: string
       platform:
-        description: Platform you played on, e.g. PS5, SNES, PC
+        description: Platform you played on, e.g. PS5, SNES, PC (add, update)
         required: false
         type: string
       genre:
-        description: Genre text shown on the page
+        description: Genre text shown on the page (add, update)
         required: false
         type: string
       finished:
-        description: Date finished as YYYY-MM-DD (leave empty for a game in progress)
+        description: Date finished as YYYY-MM-DD (add, update)
         required: false
         type: string
       status:
-        description: Type "In progress" for a game you have not finished
+        description: 'Type "In progress" for an unfinished game, or "Done" to mark a game as finished (add, update)'
         required: false
         type: string
       notes:
-        description: Short note shown under the game (optional)
+        description: Short note shown under the game (add, update)
         required: false
         type: string
       rawg_id:
-        description: Exact RAWG game id (optional, use it when the search picks the wrong game)
+        description: Exact RAWG game id (add; or update with refresh_media)
         required: false
         type: string
-      replace:
-        description: Replace the game if it is already in games.json
-        required: false
-        type: boolean
-        default: false
-      search_only:
-        description: Only list the RAWG matches, do not add anything
+      refresh_media:
+        description: Update only. Fetch the cover, trailer and screenshots again from RAWG.
         required: false
         type: boolean
         default: false
@@ -62,9 +67,10 @@ jobs:
         with:
           ref: main
 
-      - name: Add the game with tools/add_game.py
+      - name: Run tools/add_game.py
         env:
           RAWG_API_KEY: ${{ secrets.RAWG_API_KEY }}
+          ACTION: ${{ inputs.action }}
           TITLE: ${{ inputs.title }}
           PLATFORM: ${{ inputs.platform }}
           GENRE: ${{ inputs.genre }}
@@ -72,43 +78,45 @@ jobs:
           STATUS: ${{ inputs.status }}
           NOTES: ${{ inputs.notes }}
           RAWG_ID: ${{ inputs.rawg_id }}
-          REPLACE: ${{ inputs.replace }}
-          SEARCH_ONLY: ${{ inputs.search_only }}
+          REFRESH: ${{ inputs.refresh_media }}
         run: |
           set -euo pipefail
-          if [ -z "$RAWG_API_KEY" ]; then
+          if [ "$ACTION" != "remove" ] && [ -z "$RAWG_API_KEY" ]; then
             echo "::error::Add the RAWG_API_KEY secret in Settings > Secrets and variables > Actions."
             exit 1
           fi
           args=("$TITLE")
-          if [ "$SEARCH_ONLY" = "true" ]; then
-            python3 tools/add_game.py "${args[@]}" --search | tee -a "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
+          case "$ACTION" in
+            search) python3 tools/add_game.py "${args[@]}" --search | tee -a "$GITHUB_STEP_SUMMARY"; exit 0 ;;
+            remove) python3 tools/add_game.py "${args[@]}" --remove; exit 0 ;;
+            update) args+=(--update) ;;
+          esac
           if [ -n "$PLATFORM" ]; then args+=(--platform "$PLATFORM"); fi
           if [ -n "$GENRE" ]; then args+=(--genre "$GENRE"); fi
           if [ -n "$FINISHED" ]; then args+=(--finished "$FINISHED"); fi
           if [ -n "$STATUS" ]; then args+=(--status "$STATUS"); fi
           if [ -n "$NOTES" ]; then args+=(--notes "$NOTES"); fi
           if [ -n "$RAWG_ID" ]; then args+=(--rawg-id "$RAWG_ID"); fi
-          if [ "$REPLACE" = "true" ]; then args+=(--replace); fi
+          if [ "$ACTION" = "update" ] && [ "$REFRESH" = "true" ]; then args+=(--refresh); fi
           python3 tools/add_game.py "${args[@]}"
 
       - name: Commit games.json
-        if: ${{ !inputs.search_only }}
+        if: ${{ inputs.action != 'search' }}
         env:
+          ACTION: ${{ inputs.action }}
           TITLE: ${{ inputs.title }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add games.json
-          git commit -m "Add game: $TITLE"
+          if git diff --cached --quiet; then echo "No changes to save."; exit 0; fi
+          git commit -m "Game $ACTION: $TITLE"
           git push origin HEAD:main
 
   deploy:
     needs: add-game
     # Run after a push, or after a manual run that added a game (not a search-only run).
-    if: ${{ !cancelled() && needs.add-game.result != 'failure' && !(github.event_name == 'workflow_dispatch' && inputs.search_only) }}
+    if: ${{ !cancelled() && needs.add-game.result != 'failure' && !(github.event_name == 'workflow_dispatch' && inputs.action == 'search') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
