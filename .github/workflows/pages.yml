@@ -1,5 +1,8 @@
 name: Manage games and deploy
 
+# Name shown for each run in the Actions tab, e.g. "Remove game: Hades".
+run-name: "${{ github.event_name == 'workflow_dispatch' && format('{0} game: {1}', inputs.action, inputs.title) || format('Deploy site ({0})', github.event.head_commit.message) }}"
+
 on:
   # Every push to main publishes the site.
   push:
@@ -57,7 +60,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  add-game:
+  manage-game:
+    name: "${{ inputs.action }} game"
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
@@ -67,7 +71,7 @@ jobs:
         with:
           ref: main
 
-      - name: Run tools/add_game.py
+      - name: "${{ inputs.action }} game ${{ inputs.title }}"
         env:
           RAWG_API_KEY: ${{ secrets.RAWG_API_KEY }}
           ACTION: ${{ inputs.action }}
@@ -100,7 +104,7 @@ jobs:
           if [ "$ACTION" = "update" ] && [ "$REFRESH" = "true" ]; then args+=(--refresh); fi
           python3 tools/add_game.py "${args[@]}"
 
-      - name: Commit games.json
+      - name: Save the change to games.json
         if: ${{ inputs.action != 'search' }}
         env:
           ACTION: ${{ inputs.action }}
@@ -110,13 +114,20 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add games.json
           if git diff --cached --quiet; then echo "No changes to save."; exit 0; fi
-          git commit -m "Game $ACTION: $TITLE"
+          case "$ACTION" in
+            add) verb="Add" ;;
+            update) verb="Update" ;;
+            remove) verb="Remove" ;;
+            *) verb="$ACTION" ;;
+          esac
+          git commit -m "$verb game: $TITLE"
           git push origin HEAD:main
 
   deploy:
-    needs: add-game
+    needs: manage-game
+    name: deploy site
     # Run after a push, or after a manual run that added a game (not a search-only run).
-    if: ${{ !cancelled() && needs.add-game.result != 'failure' && !(github.event_name == 'workflow_dispatch' && inputs.action == 'search') }}
+    if: ${{ !cancelled() && needs.manage-game.result != 'failure' && !(github.event_name == 'workflow_dispatch' && inputs.action == 'search') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
