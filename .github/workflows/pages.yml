@@ -122,7 +122,7 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment2.outputs.page_url || steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -139,4 +139,13 @@ jobs:
         with:
           path: _site
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      # GitHub sometimes does not list the fresh artifact right away. Wait and try once more.
+      - name: Retry deploy
+        id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 30
+      - id: deployment2
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
