@@ -105,6 +105,8 @@ def save(games):
     with open(GAMES, "w", encoding="utf-8") as f:
         json.dump(games, f, ensure_ascii=False, indent=1)
         f.write("\n")
+    import build_site  # lives next to this script; rebuilds index.html from games.json
+    build_site.main()
 
 
 def main():

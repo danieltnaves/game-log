@@ -1,17 +1,18 @@
 # Game Log
 
-A static website that lists the games I have finished, with cover, details, trailer and screenshots.
-No build step and no framework: plain HTML, CSS and JavaScript, ready for GitHub Pages.
+A static website that lists the games I have played, with cover, details, trailer and screenshots.
+It is written in plain 1990s-style HTML: no CSS, no JavaScript, no framework. Ready for GitHub Pages.
 
 ## Files
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | The game list page. Click a game to see its trailer and screenshots. |
-| `games.json` | All the game data. This is the only file you edit to change the list. |
-| `docs.html` | Help page that explains how to add games (linked from the footer). |
+| `index.html` | The game list page. **Generated** from `games.json`: do not edit it by hand. |
+| `games.json` | All the game data. This is the file you change. |
+| `docs.html` | Help page that explains how to add games (linked from the page footer). |
 | `covers/` | Cover images that are stored in this project. |
-| `tools/add_game.py` | Script that adds, updates and removes games (uses the RAWG API for covers and media). |
+| `tools/add_game.py` | Adds, updates and removes games (uses the RAWG API for covers and media). Rebuilds `index.html` afterwards. |
+| `tools/build_site.py` | Builds `index.html` from `games.json`. |
 | `.env.example` | Template for the RAWG key. Copy it to `.env`. |
 | `.github/workflows/pages.yml` | Workflow that adds, updates and removes games from a form on GitHub and publishes the site. |
 | `.nojekyll` | Keeps GitHub from processing the files with Jekyll. |
@@ -50,17 +51,11 @@ The workflow in `.github/workflows/pages.yml` runs the same script from the brow
 2. Open the **Actions** tab, choose **Manage games and deploy**, press **Run workflow**, pick an action (`add`, `update`, `remove` or `search`) and fill in the form.
 3. The workflow commits the change to `games.json` and publishes the site.
 
-You can also edit `games.json` by hand. The full field list and more examples are in [`docs.html`](docs.html).
+You can also edit `games.json` by hand, then run `python3 tools/build_site.py` to rebuild `index.html`. The full field list and more examples are in [`docs.html`](docs.html).
 
 ## Preview locally
 
-The page loads `games.json`, so open it through a web server:
-
-```
-python3 -m http.server 8000
-```
-
-Then visit <http://localhost:8000>.
+The data is inside `index.html`, so just open the file in your browser. You need an internet connection to see the pictures, which come from RAWG.
 
 ## Publish on GitHub Pages
 
