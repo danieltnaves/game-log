@@ -73,6 +73,34 @@
   @media (max-width: 520px) { .item { flex-direction: column; } .cover { width: 100%; max-width: 260px; } }
   .empty { padding: 28px 16px; text-align: center; background: #14141f; border: 2px dashed #3a3d52; color: var(--slate); }
 
+  .item { cursor: pointer; }
+  .item:hover { background: #d3d5e0; }
+  .more { margin-top: auto; color: var(--cobalt); font-size: 20px; }
+
+  /* Detail window */
+  .overlay { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-start; justify-content: center; padding: 20px 12px; overflow-y: auto; background: rgba(0,0,10,.85); }
+  .overlay[hidden] { display: none; }
+  .win {
+    width: 100%; max-width: 860px; padding: 18px; background: var(--panel); color: var(--ink);
+    border: 2px solid; border-color: #fff #5a5d70 #5a5d70 #fff;
+    box-shadow: 0 0 0 2px #000, 6px 6px 0 2px rgba(0,0,0,.6);
+  }
+  .win h2 { margin: 0 0 8px; font: 700 28px/1.1 var(--display); overflow-wrap: anywhere; }
+  .win .facts { display: flex; flex-wrap: wrap; gap: 2px 18px; color: #4a4d60; margin-bottom: 12px; }
+  .win .facts b { color: var(--ink); font-weight: normal; }
+  .win h4 { margin: 14px 0 6px; font: 700 18px var(--display); letter-spacing: .06em; }
+  .win video, .win .shot { display: block; width: 100%; max-height: 70vh; background: #000; object-fit: contain; border: 2px solid; border-color: #5a5d70 #fff #fff #5a5d70; }
+  .win .shot { aspect-ratio: 16 / 9; }
+  .thumbs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .thumbs button { padding: 0; width: 96px; height: 54px; background: #000; cursor: pointer; border: 2px solid #5a5d70; }
+  .thumbs button[aria-current="true"] { border-color: var(--signal); }
+  .thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .win .row { display: flex; margin-top: 16px; }
+  .win .row .btn { margin-left: auto; }
+  .btn { font: inherit; font-size: 22px; padding: 4px 14px; cursor: pointer; background: var(--panel); color: var(--ink); border: 2px solid; border-color: #fff #5a5d70 #5a5d70 #fff; }
+  .btn:active { border-color: #5a5d70 #fff #fff #5a5d70; }
+  .win .none { color: #4a4d60; margin: 0; }
+
   footer { margin-top: 28px; padding-top: 12px; border-top: 2px solid #2a2a40; color: var(--slate); font-size: 18px; }
 </style>
 </head>
@@ -154,11 +182,12 @@
     h += '<div class="row"><button class="btn" type="button" data-close autofocus>CLOSE</button></div>';
     opener = document.activeElement; win.innerHTML = h; overlay.hidden = false;
     document.body.style.overflow = 'hidden'; overlay.scrollTop = 0;
-    var c = win.querySelector('[data-close]'); if (c) c.focus();
+    var c = win.querySelector('[data-close]'); if (c) c.focus({ preventScroll: true });
+    overlay.scrollTop = 0;
   }
   function closeWin() {
     overlay.hidden = true; win.innerHTML = ''; document.body.style.overflow = '';
-    if (opener && document.contains(opener)) opener.focus();
+    if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
   }
   overlay.addEventListener('mousedown', function (e) { if (e.target === overlay) closeWin(); });
   win.addEventListener('click', function (e) {
