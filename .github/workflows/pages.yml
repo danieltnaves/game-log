@@ -1,0 +1,142 @@
+name: Add game and deploy
+
+on:
+  # Every push to main publishes the site.
+  push:
+    branches: [main]
+  # Run manually from the Actions tab to add a game (fill in the form).
+  workflow_dispatch:
+    inputs:
+      title:
+        description: Game title, e.g. Hades
+        required: true
+        type: string
+      platform:
+        description: Platform you played on, e.g. PS5, SNES, PC
+        required: false
+        type: string
+      genre:
+        description: Genre text shown on the page
+        required: false
+        type: string
+      finished:
+        description: Date finished as YYYY-MM-DD (leave empty for a game in progress)
+        required: false
+        type: string
+      status:
+        description: Type "In progress" for a game you have not finished
+        required: false
+        type: string
+      rating:
+        description: Rating from 1 to 10 (optional)
+        required: false
+        type: string
+      notes:
+        description: Short note shown under the game (optional)
+        required: false
+        type: string
+      rawg_id:
+        description: Exact RAWG game id (optional, use it when the search picks the wrong game)
+        required: false
+        type: string
+      replace:
+        description: Replace the game if it is already in games.json
+        required: false
+        type: boolean
+        default: false
+      search_only:
+        description: Only list the RAWG matches, do not add anything
+        required: false
+        type: boolean
+        default: false
+
+# One run at a time, so two additions never overwrite each other.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  add-game:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Add the game with tools/add_game.py
+        env:
+          RAWG_API_KEY: ${{ secrets.RAWG_API_KEY }}
+          TITLE: ${{ inputs.title }}
+          PLATFORM: ${{ inputs.platform }}
+          GENRE: ${{ inputs.genre }}
+          FINISHED: ${{ inputs.finished }}
+          STATUS: ${{ inputs.status }}
+          RATING: ${{ inputs.rating }}
+          NOTES: ${{ inputs.notes }}
+          RAWG_ID: ${{ inputs.rawg_id }}
+          REPLACE: ${{ inputs.replace }}
+          SEARCH_ONLY: ${{ inputs.search_only }}
+        run: |
+          set -euo pipefail
+          if [ -z "$RAWG_API_KEY" ]; then
+            echo "::error::Add the RAWG_API_KEY secret in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          args=("$TITLE")
+          if [ "$SEARCH_ONLY" = "true" ]; then
+            python3 tools/add_game.py "${args[@]}" --search | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ -n "$PLATFORM" ]; then args+=(--platform "$PLATFORM"); fi
+          if [ -n "$GENRE" ]; then args+=(--genre "$GENRE"); fi
+          if [ -n "$FINISHED" ]; then args+=(--finished "$FINISHED"); fi
+          if [ -n "$STATUS" ]; then args+=(--status "$STATUS"); fi
+          if [ -n "$RATING" ]; then args+=(--rating "$RATING"); fi
+          if [ -n "$NOTES" ]; then args+=(--notes "$NOTES"); fi
+          if [ -n "$RAWG_ID" ]; then args+=(--rawg-id "$RAWG_ID"); fi
+          if [ "$REPLACE" = "true" ]; then args+=(--replace); fi
+          python3 tools/add_game.py "${args[@]}"
+
+      - name: Commit games.json
+        if: ${{ !inputs.search_only }}
+        env:
+          TITLE: ${{ inputs.title }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add games.json
+          git commit -m "Add game: $TITLE"
+          git push origin HEAD:main
+
+  deploy:
+    needs: add-game
+    # Run after a push, or after a manual run that added a game (not a search-only run).
+    if: ${{ !cancelled() && needs.add-game.result != 'failure' && !(github.event_name == 'workflow_dispatch' && inputs.search_only) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Collect the site files
+        run: |
+          mkdir _site
+          cp index.html docs.html games.json _site/
+          cp -r covers _site/covers
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

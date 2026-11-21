@@ -13,7 +13,8 @@ No build step and no framework: plain HTML, CSS and JavaScript, ready for GitHub
 | `covers/` | Cover images that are stored in this project. |
 | `tools/add_game.py` | Script that adds a game using the RAWG API. |
 | `.env.example` | Template for the RAWG key. Copy it to `.env`. |
-| `.nojekyll` | Tells GitHub Pages to serve the files as they are. |
+| `.github/workflows/pages.yml` | Workflow that adds a game from a form on GitHub and publishes the site. |
+| `.nojekyll` | Keeps GitHub from processing the files with Jekyll. |
 
 ## Add a game
 
@@ -34,6 +35,16 @@ No build step and no framework: plain HTML, CSS and JavaScript, ready for GitHub
    For a game you have not finished, use `--status "In progress"` instead of `--finished`.
    If the wrong game is matched, run `--search` to list RAWG matches and pass `--rawg-id`.
 
+### Add a game from GitHub
+
+The workflow in `.github/workflows/pages.yml` runs the same script from the browser:
+
+1. One time: add your RAWG key as a repository secret named `RAWG_API_KEY` (**Settings, Secrets and variables, Actions**).
+2. Open the **Actions** tab, choose **Add game and deploy**, press **Run workflow** and fill in the form.
+3. The workflow commits the change to `games.json` and publishes the site.
+
+Tick `search_only` to list the RAWG matches without adding anything.
+
 You can also edit `games.json` by hand. The full field list and more examples are in [`docs.html`](docs.html).
 
 ## Preview locally
@@ -48,8 +59,8 @@ Then visit <http://localhost:8000>.
 
 ## Publish on GitHub Pages
 
-1. Push this folder to a GitHub repository (without `.env`).
-2. Go to **Settings, Pages**, choose **Deploy from a branch**, select `main` and `/ (root)`.
+1. Push this folder to a GitHub repository (without `.env`). Every push to `main` publishes the site.
+2. Go to **Settings, Pages** and set **Source** to **GitHub Actions**.
 3. The site appears at `https://YOUR-USER.github.io/YOUR-REPO/`.
 
 ## Credits
