@@ -27,10 +27,6 @@ on:
         description: Type "In progress" for a game you have not finished
         required: false
         type: string
-      rating:
-        description: Rating from 1 to 10 (optional)
-        required: false
-        type: string
       notes:
         description: Short note shown under the game (optional)
         required: false
@@ -74,7 +70,6 @@ jobs:
           GENRE: ${{ inputs.genre }}
           FINISHED: ${{ inputs.finished }}
           STATUS: ${{ inputs.status }}
-          RATING: ${{ inputs.rating }}
           NOTES: ${{ inputs.notes }}
           RAWG_ID: ${{ inputs.rawg_id }}
           REPLACE: ${{ inputs.replace }}
@@ -94,7 +89,6 @@ jobs:
           if [ -n "$GENRE" ]; then args+=(--genre "$GENRE"); fi
           if [ -n "$FINISHED" ]; then args+=(--finished "$FINISHED"); fi
           if [ -n "$STATUS" ]; then args+=(--status "$STATUS"); fi
-          if [ -n "$RATING" ]; then args+=(--rating "$RATING"); fi
           if [ -n "$NOTES" ]; then args+=(--notes "$NOTES"); fi
           if [ -n "$RAWG_ID" ]; then args+=(--rawg-id "$RAWG_ID"); fi
           if [ "$REPLACE" = "true" ]; then args+=(--replace); fi

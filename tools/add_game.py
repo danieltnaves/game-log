@@ -69,7 +69,6 @@ def main():
     ap.add_argument("--genre", default="", help="genre text shown on the page")
     ap.add_argument("--finished", default="", help="date finished, YYYY-MM-DD")
     ap.add_argument("--status", default="", help='use "In progress" for games you have not finished')
-    ap.add_argument("--rating", type=int, help="rating from 1 to 10")
     ap.add_argument("--notes", default="", help="short note shown under the game")
     ap.add_argument("--rawg-id", type=int, help="exact RAWG game id (skip the search)")
     ap.add_argument("--search", action="store_true", help="only list RAWG matches and exit")
@@ -86,8 +85,6 @@ def main():
 
     if a.finished and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", a.finished):
         sys.exit("--finished must look like 2026-08-27")
-    if a.rating is not None and not 1 <= a.rating <= 10:
-        sys.exit("--rating must be between 1 and 10")
     if not a.finished and not a.status:
         sys.exit('Give --finished YYYY-MM-DD, or --status "In progress".')
 
@@ -116,7 +113,6 @@ def main():
     if a.status:
         entry["status"] = a.status
     entry.update({
-        "rating": a.rating,
         "notes": a.notes,
         "cover": detail.get("background_image") or "",
         "trailer": (movies[0]["data"].get("max") or movies[0]["data"].get("480") or "") if movies else "",

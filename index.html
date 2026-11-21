@@ -73,39 +73,6 @@
   @media (max-width: 520px) { .item { flex-direction: column; } .cover { width: 100%; max-width: 260px; } }
   .empty { padding: 28px 16px; text-align: center; background: #14141f; border: 2px dashed #3a3d52; color: var(--slate); }
 
-  /* Rating blocks */
-  .blocks { display: inline-flex; gap: 3px; vertical-align: middle; }
-  .blocks i { width: 12px; height: 16px; background: #9a9db0; border: 1px solid #5a5d70; }
-  .blocks i.on { background: var(--cobalt); border-color: #101a66; }
-
-  .item { cursor: pointer; }
-  .item:hover { background: #d3d5e0; }
-  .more { margin-top: auto; color: var(--cobalt); font-size: 20px; }
-
-  /* Detail window */
-  .overlay { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-start; justify-content: center; padding: 20px 12px; overflow-y: auto; background: rgba(0,0,10,.85); }
-  .overlay[hidden] { display: none; }
-  .win {
-    width: 100%; max-width: 860px; padding: 18px; background: var(--panel); color: var(--ink);
-    border: 2px solid; border-color: #fff #5a5d70 #5a5d70 #fff;
-    box-shadow: 0 0 0 2px #000, 6px 6px 0 2px rgba(0,0,0,.6);
-  }
-  .win h2 { margin: 0 0 8px; font: 700 28px/1.1 var(--display); overflow-wrap: anywhere; }
-  .win .facts { display: flex; flex-wrap: wrap; gap: 2px 18px; color: #4a4d60; margin-bottom: 12px; }
-  .win .facts b { color: var(--ink); font-weight: normal; }
-  .win h4 { margin: 14px 0 6px; font: 700 18px var(--display); letter-spacing: .06em; }
-  .win video, .win .shot { display: block; width: 100%; max-height: 70vh; background: #000; object-fit: contain; border: 2px solid; border-color: #5a5d70 #fff #fff #5a5d70; }
-  .win .shot { aspect-ratio: 16 / 9; }
-  .thumbs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .thumbs button { padding: 0; width: 96px; height: 54px; background: #000; cursor: pointer; border: 2px solid #5a5d70; }
-  .thumbs button[aria-current="true"] { border-color: var(--signal); }
-  .thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .win .row { display: flex; margin-top: 16px; }
-  .win .row .btn { margin-left: auto; }
-  .btn { font: inherit; font-size: 22px; padding: 4px 14px; cursor: pointer; background: var(--panel); color: var(--ink); border: 2px solid; border-color: #fff #5a5d70 #5a5d70 #fff; }
-  .btn:active { border-color: #5a5d70 #fff #fff #5a5d70; }
-  .win .none { color: #4a4d60; margin: 0; }
-
   footer { margin-top: 28px; padding-top: 12px; border-top: 2px solid #2a2a40; color: var(--slate); font-size: 18px; }
 </style>
 </head>
@@ -149,12 +116,6 @@
       : '<span class="ph">' + esc(initials(g.title)) + '</span>';
     return '<div class="cover" style="' + bg + '">' + inner + '</div>';
   }
-  function blocks(n) {
-    var s = '';
-    for (var i = 1; i <= 10; i++) s += '<i class="' + (n && i <= n ? 'on' : '') + '"></i>';
-    return '<span class="blocks" role="img" aria-label="' + (n ? 'Rating ' + n + ' out of 10' : 'Not rated') + '">' + s + '</span>';
-  }
-
   /* In-progress games first, then newest finished first; later entries first on the same date. */
   function sorted(games) {
     return games.map(function (g, i) { return { g: g, i: i }; }).sort(function (a, b) {
@@ -166,13 +127,11 @@
     var grid = $('#grid');
     if (!games.length) { grid.innerHTML = '<div class="empty">No games to show yet.</div>'; return; }
     grid.innerHTML = sorted(games).map(function (g) {
-      var rating = parseInt(g.rating, 10) || null;
       return '<article class="item" role="button" tabindex="0" data-id="' + esc(g.id) + '">' + coverHtml(g) +
         '<div class="body"><h3>' + esc(g.title) + '</h3>' +
         '<span class="line"><b>Platform:</b> ' + esc(g.platform || '\u2013') + '</span>' +
         '<span class="line"><b>Genre:</b> ' + esc(g.genre || '\u2013') + '</span>' +
         (g.status ? '<span class="line"><b>Status:</b> ' + esc(g.status) + '</span>' : '<span class="line"><b>Finished:</b> ' + esc(fmtDate(g.finished)) + '</span>') +
-        '<span class="line"><b>Rating:</b> ' + blocks(rating) + (rating ? ' ' + rating + '/10' : '') + '</span>' +
         (g.notes ? '<p class="pnotes">' + esc(g.notes) + '</p>' : '') + '<span class="more">' + (g.trailer ? 'Trailer and ' : '') + 'Screenshots &raquo;</span></div></article>';
     }).join('');
   }
@@ -181,11 +140,11 @@
   var all = [], opener = null, overlay = $('#overlay'), win = $('#win');
   function openDetail(id) {
     var g = all.filter(function (x) { return x.id === id; })[0]; if (!g) return;
-    var shots = Array.isArray(g.screenshots) ? g.screenshots : [], rating = parseInt(g.rating, 10) || null;
+    var shots = Array.isArray(g.screenshots) ? g.screenshots : [];
     var h = '<h2 id="win-title">' + esc(g.title) + '</h2><div class="facts">' +
       '<span><b>Platform:</b> ' + esc(g.platform || '\u2013') + '</span><span><b>Genre:</b> ' + esc(g.genre || '\u2013') + '</span>' +
       (g.status ? '<span><b>Status:</b> ' + esc(g.status) + '</span>' : '<span><b>Finished:</b> ' + esc(fmtDate(g.finished)) + '</span>') +
-      (rating ? '<span><b>Rating:</b> ' + rating + '/10</span>' : '') + '</div>';
+      '</div>';
     if (g.trailer) h += '<h4>TRAILER</h4><video controls preload="none" playsinline' + (g.trailerPreview ? ' poster="' + esc(g.trailerPreview) + '"' : '') + ' src="' + esc(g.trailer) + '"></video>';
     h += '<h4>SCREENSHOTS</h4>';
     if (shots.length) {

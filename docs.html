@@ -68,7 +68,6 @@ python3 tools/add_game.py "Resident Evil" --rawg-id 56183 --platform PS4 --genre
     <tr><td><code>--genre</code></td><td>Genre text shown on the page.</td></tr>
     <tr><td><code>--finished</code></td><td>Date finished as <code>YYYY-MM-DD</code>.</td></tr>
     <tr><td><code>--status</code></td><td>Use <code>"In progress"</code> for unfinished games. Leave it out for finished ones.</td></tr>
-    <tr><td><code>--rating</code></td><td>Optional rating from 1 to 10.</td></tr>
     <tr><td><code>--notes</code></td><td>Optional short note shown under the game.</td></tr>
     <tr><td><code>--rawg-id</code></td><td>Exact RAWG game id, to skip the search.</td></tr>
     <tr><td><code>--search</code></td><td>Only list the RAWG matches and stop.</td></tr>
@@ -99,7 +98,6 @@ python3 tools/add_game.py "Resident Evil" --rawg-id 56183 --platform PS4 --genre
  "platform": "PS5",
  "genre": "Roguelike",
  "finished": "2026-10-12",
- "rating": null,
  "notes": "Released in 2020.",
  "cover": "https://media.rawg.io/media/games/1f4/1f47a270b8f241e4676b14d39ec620f7.jpg",
  "trailer": "",
@@ -113,7 +111,6 @@ python3 tools/add_game.py "Resident Evil" --rawg-id 56183 --platform PS4 --genre
     <tr><td><code>platform</code>, <code>genre</code></td><td>Text shown on the page.</td></tr>
     <tr><td><code>finished</code></td><td>Date as <code>YYYY-MM-DD</code>. Newest dates are listed first.</td></tr>
     <tr><td><code>status</code></td><td>Optional. Add <code>"status": "In progress"</code> for games you have not finished. They appear at the top and show Status instead of a date.</td></tr>
-    <tr><td><code>rating</code></td><td>A number from 1 to 10, or <code>null</code> for none.</td></tr>
     <tr><td><code>notes</code></td><td>Optional text under the game.</td></tr>
     <tr><td><code>cover</code></td><td>A full image address, or a file in this project such as <code>covers/hades.jpg</code>. If it is empty or broken, the page shows a coloured box with the game's initials.</td></tr>
     <tr><td><code>trailer</code>, <code>trailerPreview</code></td><td>Optional video file address and its poster image. Leave <code>""</code> for none.</td></tr>
