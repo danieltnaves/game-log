@@ -153,7 +153,7 @@ jobs:
         with:
           path: _site
       - id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         continue-on-error: true
       # GitHub sometimes does not list the fresh artifact right away. Wait and try once more.
       - name: Retry deploy
@@ -162,4 +162,4 @@ jobs:
         run: sleep 30
       - id: deployment2
         if: steps.deployment.outcome == 'failure'
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
