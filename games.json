@@ -1033,5 +1033,24 @@
    "https://media.rawg.io/media/screenshots/a96/a96e960d87fc209488ef25da79b92a84.jpg",
    "https://media.rawg.io/media/screenshots/8ed/8edc8d65ba1c1ab001a3fb1bd6fdeeb6.jpg"
   ]
+ },
+ {
+  "id": "grand-theft-auto-vi",
+  "title": "Grand Theft Auto VI",
+  "platform": "PS5",
+  "genre": "ACTION",
+  "finished": "2026-11-26",
+  "notes": "thats a short not",
+  "cover": "https://media.rawg.io/media/games/734/7342a1cd82c8997ec620084ae4c2e7e4.jpg",
+  "trailer": "",
+  "trailerPreview": "",
+  "screenshots": [
+   "https://media.rawg.io/media/screenshots/c5a/c5a192a8bc1b96d6388272be20af78af.jpg",
+   "https://media.rawg.io/media/screenshots/598/5983ffe274a237b33e0f0452364fba78.jpg",
+   "https://media.rawg.io/media/screenshots/384/384241113cb4510774289415d7d6dba1.jpg",
+   "https://media.rawg.io/media/screenshots/4c4/4c47d5e898bda3ce131a8e73db6fe505.jpg",
+   "https://media.rawg.io/media/screenshots/db2/db2c206e7896ddc846c60f5d315ecfc3.jpg",
+   "https://media.rawg.io/media/screenshots/05d/05db79dc3d0b0cc9af3f10135ad78025.jpg"
+  ]
  }
 ]
